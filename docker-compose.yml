@@ -1,0 +1,31 @@
+services:
+  serve:
+    build: .
+    image: factory-pdm:local
+    command: uvicorn serve.app:app --host 0.0.0.0 --port 8000
+    ports: ["8000:8000"]
+  ingest:
+    build: .
+    image: factory-pdm:local
+    command: uvicorn ingest.app:app --host 0.0.0.0 --port 8001
+    environment:
+      SERVE_URL: http://serve:8000
+      DB_PATH: /data/sensor.db
+    volumes: ["sensor-data:/data"]
+    ports: ["8001:8001"]
+    depends_on: [serve]
+  simulator:
+    build: .
+    image: factory-pdm:local
+    command: python -m simulator.stream --ingest-url http://ingest:8001 --interval 0.5 --inject-fault 3
+    depends_on: [ingest]
+  dashboard:
+    build: .
+    image: factory-pdm:local
+    command: streamlit run dashboard/app.py --server.address 0.0.0.0 --server.port 8501
+    environment:
+      INGEST_URL: http://ingest:8001
+    ports: ["8501:8501"]
+    depends_on: [ingest]
+volumes:
+  sensor-data:

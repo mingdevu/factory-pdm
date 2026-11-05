@@ -1,0 +1,10 @@
+.venv
+.env
+mlruns
+mlflow.db
+data/raw
+data/*.db
+model/artifacts
+__pycache__
+.pytest_cache
+docs
