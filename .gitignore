@@ -1,0 +1,18 @@
+# 비밀값
+.env
+# 가상환경
+.venv/
+venv/
+# 대용량 데이터·DB (scripts/download_data.py로 재생성)
+data/raw/
+*.db
+*.sqlite
+# 모델 바이너리·실험 기록 (python -m model.train으로 재생성)
+model/artifacts/
+mlruns/
+mlflow.db
+mlartifacts/
+# 기타
+__pycache__/
+.pytest_cache/
+*.pyc
