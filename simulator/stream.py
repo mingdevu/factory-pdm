@@ -61,23 +61,27 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--inject-fault", type=int, default=None, help="이상을 주입할 설비 번호")
     parser.add_argument("--all-rows", action="store_true", help="학습 행까지 모두 전송 (기본: 테스트셋만)")
+    parser.add_argument("--loop", action="store_true", help="데이터를 다 보내면 처음부터 다시 보낸다 (상시 데모용)")
     args = parser.parse_args()
 
     rng = random.Random(0)
     sent = failed = 0
     with httpx.Client(base_url=args.ingest_url, timeout=5.0) as client:
-        for reading in build_readings(args.machines, args.start, args.limit, test_only=not args.all_rows):
-            if args.inject_fault == reading["machine_id"]:
-                reading = inject_overload(reading, rng)
-            try:
-                client.post("/readings", json=reading).raise_for_status()
-                sent += 1
-            except httpx.HTTPError as error:
-                failed += 1
-                print(f"전송 실패 (machine {reading['machine_id']}): {error}", file=sys.stderr)
-            if sent % 50 == 0 and sent:
-                print(f"전송 {sent}건 / 실패 {failed}건")
-            time.sleep(args.interval)
+        while True:
+            for reading in build_readings(args.machines, args.start, args.limit, test_only=not args.all_rows):
+                if args.inject_fault == reading["machine_id"]:
+                    reading = inject_overload(reading, rng)
+                try:
+                    client.post("/readings", json=reading).raise_for_status()
+                    sent += 1
+                except httpx.HTTPError as error:
+                    failed += 1
+                    print(f"전송 실패 (machine {reading['machine_id']}): {error}", file=sys.stderr)
+                if sent % 50 == 0 and sent:
+                    print(f"전송 {sent}건 / 실패 {failed}건", flush=True)
+                time.sleep(args.interval)
+            if not args.loop:
+                break
     print(f"완료: 전송 {sent}건 / 실패 {failed}건")
     return 0 if failed == 0 else 1
 

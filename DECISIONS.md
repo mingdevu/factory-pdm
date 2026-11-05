@@ -20,3 +20,6 @@
 - 작업 중 서비스를 재시작하면서 `taskkill /IM python.exe`로 python 프로세스를 한꺼번에 종료한 적이 한 번 있다. 이후에는 포트별 PID만 종료하도록 바꿨다.
 - Docker: 처음 확인 때 Docker Desktop은 설치돼 있었지만 데몬이 꺼져 있었다. '미설치' 조건이 아니므로 Docker Desktop을 직접 실행했고, `docker compose build` → `docker compose up -d`로 serve·ingest·simulator·dashboard 4개 컨테이너가 모두 running이고 /health·대시보드(200)가 응답하는 것까지 확인했다. README 스크린샷은 이 Docker 스택에서 찍었다.
 - docker-compose의 4개 서비스가 같은 이미지(`factory-pdm:local`)를 공유하게 해서 빌드를 한 번만 하도록 했다.
+- 배포(2026-11-06): Hugging Face Docker Space를 먼저 준비하고 로컬 Docker로 검증까지 했지만, 무료 계정에서 Docker Space 생성이 402(PRO 필요)로 막혔다. 사용자와 상의해 Streamlit Community Cloud(무료)로 배포하기로 했다. HF용 파일(`deploy/huggingface/`)은 PRO 전환 시 바로 쓸 수 있게 남겨 두었다.
+- Streamlit Cloud는 프로세스를 하나만 띄울 수 있어서, 수집·예측·시뮬레이터를 앱 안에서 처리하는 단독 데모(`deploy/streamlit/streamlit_app.py`)를 따로 만들었다. 같은 계산을 두 번 쓰지 않도록 점수 계산은 `model/scoring.py`, 화면은 `dashboard/views.py`로 분리해 serve·대시보드·데모가 함께 쓴다.
+- 클라우드용 의존성은 `deploy/streamlit/requirements.txt`에 최소한으로 두었다(MLflow·FastAPI·pytest 제외). 같은 조건의 리눅스 컨테이너(python:3.11-slim)에서 학습·스트림·직접 예측 탭이 동작하는 것을 확인했다.
