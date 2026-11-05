@@ -150,9 +150,9 @@ uvicorn ingest.app:app --host 127.0.0.1 --port 8001
 streamlit run dashboard\app.py
 python -m simulator.stream --interval 0.5 --inject-fault 3
 
-# 확인
-curl -X POST http://127.0.0.1:8000/predict -H "content-type: application/json" `
-  -d '{\"product_type\":\"L\",\"air_temp_k\":302,\"process_temp_k\":310.5,\"rpm\":1180,\"torque_nm\":68,\"tool_wear_min\":220}'
+# 확인 (PowerShell 5.1에서 curl은 Invoke-WebRequest의 별칭이라 Invoke-RestMethod를 쓴다)
+$body = '{"product_type":"L","air_temp_k":302,"process_temp_k":310.5,"rpm":1180,"torque_nm":68,"tool_wear_min":220}'
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/predict -ContentType "application/json" -Body $body
 mlflow ui --backend-store-uri sqlite:///mlflow.db   # 실험 기록 보기
 ```
 
